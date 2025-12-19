@@ -1,0 +1,21 @@
+{
+  "name": "Mystic Cursor",
+  "version": "1.0.0",
+  "description": "Enchanted fluid cursor overlay",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "make": "electron-forge make",
+    "package": "electron-forge package",
+    "publish": "electron-forge publish"
+  },
+  "keywords": [],
+  "author": "Parker Fertig",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0",
+    "@electron-forge/maker-squirrel": "^6.0.0",
+    "electron": "^38.2.2"
+  },
+  "config": {}
+}

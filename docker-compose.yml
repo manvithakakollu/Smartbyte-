@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: smartbite-web
+    ports:
+      - "8501:8501"
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - EMBEDDING_MODEL_NAME=${EMBEDDING_MODEL_NAME:-all-MiniLM-L6-v2}
+      - CHROMA_DB_PATH=/app/chroma_db
+      - KB_FOLDER=/app/kb
+      - DATA_FILENAME=${DATA_FILENAME:-updated_nyc_inspections.xlsx}
+    volumes:
+      - ./kb:/app/kb:ro
+      - ./kb_clean:/app/kb_clean
+      - ./chroma_db:/app/chroma_db
+      - ./data:/app/data:ro
+      - ./reports:/app/reports
+    depends_on:
+      - chromadb
+    restart: unless-stopped
+    networks:
+      - smartbite-network
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: smartbite-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+    networks:
+      - smartbite-network
+
+  # Optional: Redis for rate limiting (if needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: smartbite-redis
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+  #   networks:
+  #     - smartbite-network
+
+volumes:
+  chroma_data:
+
+networks:
+  smartbite-network:
+    driver: bridge
+

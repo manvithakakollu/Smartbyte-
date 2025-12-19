@@ -1,0 +1,45 @@
+"""
+Example of integrating authentication and rate limiting into app.py
+
+Add this to the top of your app.py file after imports.
+"""
+import streamlit as st
+from utils.auth import init_session_state, is_authenticated, show_login_form, logout
+from utils.rate_limit import check_rate_limit
+
+# Initialize session state for authentication
+init_session_state()
+
+# Check authentication before loading app
+if not is_authenticated():
+    show_login_form()
+    st.stop()
+
+# Show logout button in sidebar (optional)
+with st.sidebar:
+    if st.button("Logout"):
+        logout()
+        st.rerun()
+
+# Now your app code continues...
+# Example: Add rate limiting to LLM calls
+def call_llm_with_rate_limit(messages, max_tokens=900, temperature=0.25):
+    """Call LLM with rate limiting."""
+    allowed, info = check_rate_limit()
+    
+    if not allowed:
+        retry_after = int(info["retry_after"])
+        st.error(
+            f"⚠️ Rate limit exceeded. Please wait {retry_after} seconds before making another request. "
+            f"(Limit: {info['limit']} requests per minute)"
+        )
+        return None
+    
+    # Show remaining requests (optional)
+    if info["remaining"] < 5:
+        st.warning(f"⚠️ Only {info['remaining']} requests remaining this minute.")
+    
+    # Call actual LLM function
+    from backend.llm.client import call_llm
+    return call_llm(messages, max_tokens, temperature)
+
